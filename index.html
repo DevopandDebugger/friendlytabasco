@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friendly Zapata</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Friendly Zapata</h1>
+      <p>Conecta con personas cercanas y recibe notificaciones para nuevas interacciones.</p>
+    </header>
+
+    <section id="permissions-screen" class="screen active">
+      <h2>Permisos requeridos</h2>
+      <p>Activa las notificaciones push y la ubicación para que la app funcione correctamente.</p>
+      <button id="request-notifications">Permitir notificaciones</button>
+      <button id="request-location">Permitir ubicación</button>
+    </section>
+
+    <section id="consent-screen" class="screen">
+      <h2>Antes de continuar</h2>
+      <label><input type="checkbox" id="consent-age" /> Soy mayor de 18 años.</label>
+      <label><input type="checkbox" id="consent-privacy" /> He leído y acepto las políticas de privacidad.</label>
+      <button id="accept-consent" disabled>Aceptar y continuar</button>
+    </section>
+
+    <section id="register-screen" class="screen">
+      <h2>Crear cuenta</h2>
+      <form id="register-form">
+        <label>Foto de perfil
+          <input type="file" id="profile-photo" accept="image/*" />
+        </label>
+        <label>Nombre o alias
+          <input type="text" id="register-name" required />
+        </label>
+        <label>Fecha de nacimiento
+          <input type="date" id="register-birthdate" required />
+        </label>
+        <label>Teléfono
+          <input type="tel" id="register-phone" placeholder="+521XXXXXXXXXX" required />
+        </label>
+        <label>Dirección
+          <input type="text" id="register-address" required />
+        </label>
+        <label>Municipio
+          <input type="text" id="register-municipio" required />
+        </label>
+        <label>Colonia
+          <input type="text" id="register-colonia" required />
+        </label>
+        <label>Contraseña
+          <input type="password" id="register-password" required />
+        </label>
+        <label>Repetir contraseña
+          <input type="password" id="register-password-confirm" required />
+        </label>
+        <p class="hint">Nadie conocerá tu identidad y tus datos estarán seguros en Firebase.</p>
+        <button type="submit">Crear cuenta</button>
+      </form>
+      <p class="small">Si ya tienes cuenta, ve a <button class="link-button" id="go-login">Iniciar sesión</button>.</p>
+    </section>
+
+    <section id="verify-screen" class="screen">
+      <h2>Verificar cuenta</h2>
+      <p>Ingresa el código que se envió a tu dispositivo por notificación.</p>
+      <label>Código de verificación
+        <input type="text" id="verify-code" required />
+      </label>
+      <button id="check-verify">Validar</button>
+      <button id="resend-code">Volver a enviar código</button>
+      <p id="verify-message" class="message"></p>
+    </section>
+
+    <section id="login-screen" class="screen">
+      <h2>Iniciar sesión</h2>
+      <form id="login-form">
+        <label>Teléfono
+          <input type="tel" id="login-phone" placeholder="+521XXXXXXXXXX" required />
+        </label>
+        <label>Contraseña
+          <input type="password" id="login-password" required />
+        </label>
+        <label><input type="checkbox" id="login-autologin" /> Iniciar sesión automáticamente</label>
+        <button type="submit">Ingresar</button>
+      </form>
+      <button id="forgot-password">¿Olvidaste tu contraseña?</button>
+      <p class="small">¿No tienes cuenta? <button class="link-button" id="go-register">Regístrate</button></p>
+    </section>
+
+    <section id="recover-screen" class="screen">
+      <h2>Recuperar contraseña</h2>
+      <form id="recover-form">
+        <label>Teléfono registrado
+          <input type="tel" id="recover-phone" placeholder="+521XXXXXXXXXX" required />
+        </label>
+        <button type="submit">Enviar código</button>
+      </form>
+      <div id="recover-code-block" class="hidden">
+        <label>Ingresa el código
+          <input type="text" id="recover-code" />
+        </label>
+        <button id="recover-verify-code">Enviar</button>
+      </div>
+      <div id="recover-password-block" class="hidden">
+        <label>Nueva contraseña
+          <input type="password" id="recover-new-password" />
+        </label>
+        <label>Confirmar contraseña
+          <input type="password" id="recover-new-password-confirm" />
+        </label>
+        <button id="recover-save-password">Guardar</button>
+      </div>
+      <p id="recover-message" class="message"></p>
+    </section>
+
+    <section id="main-screen" class="screen">
+      <div class="main-header">
+        <div>
+          <h2>Perfiles</h2>
+          <p>Explora personas cerca de ti.</p>
+        </div>
+        <div class="menu-buttons">
+          <button id="open-account">Mi cuenta</button>
+          <button id="open-chats">Mis chats</button>
+          <button id="open-blocked">Bloqueados</button>
+          <button id="logout">Cerrar sesión</button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <label>Filtrar por edad
+          <select id="filter-age">
+            <option value="all">Todas</option>
+            <option value="18-25">18-25</option>
+            <option value="26-35">26-35</option>
+            <option value="36-50">36-50</option>
+          </select>
+        </label>
+        <label>Filtrar por colonia
+          <input type="text" id="filter-colonia" placeholder="Colonia" />
+        </label>
+        <button id="apply-filters">Aplicar</button>
+      </div>
+
+      <div id="profile-list" class="card-grid"></div>
+    </section>
+
+    <section id="account-screen" class="screen">
+      <h2>Mi cuenta</h2>
+      <form id="account-form">
+        <label>Alias
+          <input type="text" id="account-name" required />
+        </label>
+        <label>Fecha de nacimiento
+          <input type="date" id="account-birthdate" required />
+        </label>
+        <label>Teléfono
+          <input type="tel" id="account-phone" required disabled />
+        </label>
+        <label>Dirección
+          <input type="text" id="account-address" required />
+        </label>
+        <label>Municipio
+          <input type="text" id="account-municipio" required />
+        </label>
+        <label>Colonia
+          <input type="text" id="account-colonia" required />
+        </label>
+        <button type="submit">Guardar cambios</button>
+      </form>
+      <button id="delete-account" class="danger">Eliminar cuenta</button>
+      <button id="back-to-main">Volver</button>
+      <p id="account-message" class="message"></p>
+    </section>
+
+    <section id="blocked-screen" class="screen">
+      <h2>Personas bloqueadas</h2>
+      <div id="blocked-list" class="card-grid"></div>
+      <button id="back-from-blocked">Volver</button>
+    </section>
+
+    <section id="chats-screen" class="screen">
+      <h2>Chats</h2>
+      <div id="chats-list"></div>
+      <button id="back-from-chats">Volver</button>
+    </section>
+
+    <section id="chat-detail-screen" class="screen">
+      <div class="chat-topbar">
+        <div>
+          <h3 id="chat-with-name">Chat</h3>
+          <p id="chat-with-age"></p>
+        </div>
+        <button id="close-chat">Cerrar chat</button>
+      </div>
+      <div id="chat-messages" class="chat-messages"></div>
+      <div class="chat-controls">
+        <textarea id="chat-input" placeholder="Escribe un mensaje..."></textarea>
+        <button id="send-chat-message">Enviar</button>
+      </div>
+      <div class="chat-actions">
+        <button id="share-location">Compartir ubicación</button>
+        <button id="block-chat-user" class="danger">Bloquear</button>
+      </div>
+      <button id="back-from-chat">Volver a chats</button>
+    </section>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
