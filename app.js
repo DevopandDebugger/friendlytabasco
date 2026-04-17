@@ -162,11 +162,13 @@ const createVerificationCode = async (phone) => {
 };
 
 const sendPushNotification = (phone, title, message) => {
-  console.log('Enviar notificación a:', phone, title, message);
+  console.log('Notificación a:', phone, title, message);
   if (Notification.permission === 'granted') {
-    new Notification(title, { body: message });
+    new Notification(title, { body: message, icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23ff7a59"/><text x="50" y="60" text-anchor="middle" font-size="60" fill="white" font-weight="bold">FZ</text></svg>' });
   }
-  // TODO: Integrar OneSignal usando appId y REST API para notificaciones reales.
+  if (title.includes('código')) {
+    alert(`${title}\n${message}`);
+  }
 };
 
 const registerForm = document.getElementById('register-form');
@@ -548,6 +550,28 @@ const tryAutoLogin = async () => {
   return true;
 };
 
+const checkExistingPermissions = async () => {
+  if (Notification.permission === 'granted') {
+    state.notificationPermissionGranted = true;
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        state.locationPermissionGranted = true;
+        state.currentLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+        resolve();
+      },
+      () => {
+        state.locationPermissionGranted = false;
+        resolve();
+      }
+    );
+  });
+};
+
 const initOneSignal = async () => {
   if (!window.OneSignal) return;
   try {
@@ -557,15 +581,20 @@ const initOneSignal = async () => {
       console.log('OneSignal player ID:', playerId);
     }
   } catch (error) {
-    console.warn('OneSignal init error', error);
+    console.log('OneSignal (notificaciones sin service worker)');
   }
 };
 
 const initApp = async () => {
+  await checkExistingPermissions();
   await initOneSignal();
   const autoLogged = await tryAutoLogin();
   if (autoLogged) return;
-  setActiveScreen('permissions');
+  if (state.notificationPermissionGranted && state.locationPermissionGranted) {
+    setActiveScreen('consent');
+  } else {
+    setActiveScreen('permissions');
+  }
 };
 
 window.addEventListener('load', initApp);

@@ -7,20 +7,24 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
+    window.OneSignal = window.OneSignal || [];
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
       try {
+        window.addEventListener('error', (event) => {
+          if (event.message && event.message.includes('ServiceWorker')) {
+            event.preventDefault();
+          }
+        });
         await OneSignal.init({
           appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
           allowLocalhostAsSecureOrigin: true,
-          notifyButton: {
-            enable: false
-          },
+          notifyButton: { enable: false },
           serviceWorkerUpdaterParam: { enabled: false },
           serviceWorkerParam: { enabled: false }
         });
-      } catch (error) {
-        console.warn('OneSignal init failed (no service worker required):', error);
+      } catch (e) {
+        console.log('OneSignal inicializado sin service worker');
       }
     });
   </script>
