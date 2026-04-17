@@ -48,6 +48,10 @@ const setActiveScreen = (screenKey) => {
 
 const getElement = id => document.getElementById(id);
 
+const sanitizePhone = (phone) => {
+  return phone.replace(/[^0-9]/g, '').slice(-10);
+};
+
 const showMessage = (id, text, success = true) => {
   const element = getElement(id);
   element.textContent = text;
@@ -168,7 +172,7 @@ const sendPushNotification = (phone, title, message) => {
 const registerForm = document.getElementById('register-form');
 registerForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const phone = getElement('register-phone').value.trim();
+  const phone = sanitizePhone(getElement('register-phone').value);
   const password = getElement('register-password').value.trim();
   const passwordConfirm = getElement('register-password-confirm').value.trim();
 
@@ -222,7 +226,7 @@ resendButton.addEventListener('click', async () => {
 const loginForm = document.getElementById('login-form');
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const phone = getElement('login-phone').value.trim();
+  const phone = sanitizePhone(getElement('login-phone').value);
   const password = getElement('login-password').value.trim();
   const autoLogin = getElement('login-autologin').checked;
 
@@ -257,7 +261,7 @@ loginForm.addEventListener('submit', async (event) => {
 const recoverForm = document.getElementById('recover-form');
 recoverForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const phone = getElement('recover-phone').value.trim();
+  const phone = sanitizePhone(getElement('recover-phone').value);
   const userRef = doc(db, 'users', phone);
   const userSnapshot = await getDoc(userRef);
   if (!userSnapshot.exists()) {
