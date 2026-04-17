@@ -14,6 +14,13 @@
         allowLocalhostAsSecureOrigin: true,
         notifyButton: {
           enable: false
+        },
+        serviceWorkerParam: {
+          path: "/OneSignalSDKWorker.js",
+          scope: "/"
+        },
+        serviceWorkerUpdaterParam: {
+          path: "/OneSignalSDKUpdaterWorker.js"
         }
       });
     });
@@ -44,9 +51,6 @@
     <section id="register-screen" class="screen">
       <h2>Crear cuenta</h2>
       <form id="register-form">
-        <label>Foto de perfil
-          <input type="file" id="profile-photo" accept="image/*" />
-        </label>
         <label>Nombre o alias
           <input type="text" id="register-name" required />
         </label>

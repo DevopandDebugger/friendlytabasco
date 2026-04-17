@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://devopanddebugger.github.io"],
+    "method": ["POST", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Firebase-Storage-Resumable-Upload-Protocol"],
+    "maxAgeSeconds": 3600
+  }
+]

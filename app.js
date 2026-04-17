@@ -133,19 +133,6 @@ document.getElementById('go-register').addEventListener('click', () => setActive
 
 document.getElementById('forgot-password').addEventListener('click', () => setActiveScreen('recover'));
 
-const uploadPhoto = async (file, phone) => {
-  if (!file) return '';
-  try {
-    const photoRef = storageRef(storage, `profilePhotos/${phone}-${Date.now()}`);
-    await uploadBytes(photoRef, file);
-    return await getDownloadURL(photoRef);
-  } catch (error) {
-    console.warn('Photo upload failed:', error);
-    showMessage('register-message', 'No fue posible subir la foto. Se guardará tu cuenta sin imagen.', false);
-    return '';
-  }
-};
-
 const calculateAge = (birthdate) => {
   const today = new Date();
   const birth = new Date(birthdate);
@@ -190,8 +177,6 @@ registerForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const photoFile = getElement('profile-photo').files[0];
-  const photoUrl = await uploadPhoto(photoFile, phone);
   const userData = {
     name: getElement('register-name').value.trim(),
     birthdate: getElement('register-birthdate').value,
@@ -200,7 +185,7 @@ registerForm.addEventListener('submit', async (event) => {
     municipio: getElement('register-municipio').value.trim(),
     colonia: getElement('register-colonia').value.trim(),
     password,
-    photoUrl,
+    photoUrl: '',
     verified: false,
     blockedUsers: [],
     autoLogin: false,
