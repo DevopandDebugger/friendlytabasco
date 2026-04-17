@@ -595,8 +595,31 @@ const initOneSignal = async () => {
     return;
   }
   try {
-    console.log('✓ OneSignal disponible');
+    window.addEventListener('error', (event) => {
+      if (event.message && event.message.includes('ServiceWorker')) {
+        event.preventDefault();
+        console.log('ServiceWorker error suprimido');
+      }
+    });
+
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (isLocalhost) {
+      console.log('Modo desarrollo: OneSignal no disponible en localhost');
+      console.log('✓ Notificaciones locales disponibles');
+      return;
+    }
+
+    await OneSignal.init({
+      appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
+      allowLocalhostAsSecureOrigin: false,
+      notifyButton: { enable: false },
+      serviceWorkerUpdaterParam: { enabled: false },
+      serviceWorkerParam: { enabled: false }
+    });
+    console.log('✓ OneSignal inicializado correctamente');
   } catch (error) {
+    console.log('✗ Error en inicialización de OneSignal:', error.message);
     console.log('OneSignal (modo sin service worker)');
   }
 };

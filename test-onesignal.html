@@ -178,10 +178,24 @@
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
       try {
+        window.addEventListener('error', (event) => {
+          if (event.message && event.message.includes('ServiceWorker')) {
+            event.preventDefault();
+            log('ServiceWorker error suprimido', 'info');
+          }
+        });
         log('Inicializando OneSignal...', 'info');
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+        if (isLocalhost) {
+          log('Modo desarrollo: OneSignal no disponible en localhost', 'warning');
+          log('✓ Notificaciones locales disponibles', 'success');
+          return;
+        }
+
         await OneSignal.init({
           appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
-          allowLocalhostAsSecureOrigin: true,
+          allowLocalhostAsSecureOrigin: false,
           notifyButton: { enable: false },
           serviceWorkerUpdaterParam: { enabled: false },
           serviceWorkerParam: { enabled: false }
