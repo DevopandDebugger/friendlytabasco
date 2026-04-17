@@ -590,11 +590,28 @@ const checkExistingPermissions = async () => {
 };
 
 const initOneSignal = async () => {
-  if (!window.OneSignal) {
-    console.log('OneSignal no está cargado');
-    return;
-  }
+  // Esperar a que OneSignal esté disponible
+  const waitForOneSignal = () => {
+    return new Promise((resolve) => {
+      if (window.OneSignal && window.OneSignal.init) {
+        resolve();
+      } else {
+        const checkOneSignal = () => {
+          if (window.OneSignal && window.OneSignal.init) {
+            resolve();
+          } else {
+            setTimeout(checkOneSignal, 100);
+          }
+        };
+        checkOneSignal();
+      }
+    });
+  };
+
   try {
+    await waitForOneSignal();
+    console.log('✓ OneSignal SDK cargado');
+
     window.addEventListener('error', (event) => {
       if (event.message && event.message.includes('ServiceWorker')) {
         event.preventDefault();
@@ -615,8 +632,25 @@ const initOneSignal = async () => {
       allowLocalhostAsSecureOrigin: false,
       notifyButton: { enable: false },
       serviceWorkerUpdaterParam: { enabled: false },
-      serviceWorkerParam: { enabled: false }
+      serviceWorkerParam: { enabled: false },
+      autoResubscribe: true,
+      autoRegister: true,
+      promptOptions: {
+        slidedown: {
+          enabled: true,
+          autoPrompt: true,
+          actionMessage: "Te gustaría recibir notificaciones de nuevos mensajes?",
+          acceptButtonText: "Sí, activar",
+          cancelButtonText: "Ahora no"
+        }
+      }
     });
+
+    // Mostrar el prompt después de inicializar
+    setTimeout(() => {
+      OneSignal.showSlidedownPrompt();
+    }, 3000);
+
     console.log('✓ OneSignal inicializado correctamente');
   } catch (error) {
     console.log('✗ Error en inicialización de OneSignal:', error.message);

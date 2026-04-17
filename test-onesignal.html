@@ -198,8 +198,25 @@
           allowLocalhostAsSecureOrigin: false,
           notifyButton: { enable: false },
           serviceWorkerUpdaterParam: { enabled: false },
-          serviceWorkerParam: { enabled: false }
+          serviceWorkerParam: { enabled: false },
+          autoResubscribe: true,
+          autoRegister: true,
+          promptOptions: {
+            slidedown: {
+              enabled: true,
+              autoPrompt: true,
+              actionMessage: "Te gustaría recibir notificaciones de nuevos mensajes?",
+              acceptButtonText: "Sí, activar",
+              cancelButtonText: "Ahora no"
+            }
+          }
         });
+
+        // Mostrar el prompt después de inicializar
+        setTimeout(() => {
+          OneSignal.showSlidedownPrompt();
+        }, 3000);
+
         log('✓ OneSignal inicializado correctamente', 'success');
         
         try {
