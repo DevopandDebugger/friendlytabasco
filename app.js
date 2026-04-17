@@ -55,15 +55,22 @@ const showMessage = (id, text, success = true) => {
 };
 
 const requestNotificationPermission = async () => {
-  if (!('Notification' in window)) return;
+  if (!('Notification' in window)) {
+    state.notificationPermissionGranted = false;
+    updatePermissionState();
+    return false;
+  }
   const permission = await Notification.requestPermission();
   state.notificationPermissionGranted = permission === 'granted';
+  updatePermissionState();
+  return state.notificationPermissionGranted;
 };
 
 const requestLocationPermission = () => {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
       state.locationPermissionGranted = false;
+      updatePermissionState();
       resolve(false);
       return;
     }
@@ -73,12 +80,28 @@ const requestLocationPermission = () => {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude
       };
+      updatePermissionState();
       resolve(true);
     }, () => {
       state.locationPermissionGranted = false;
+      updatePermissionState();
       resolve(false);
     });
   });
+};
+
+const updatePermissionState = () => {
+  const message = getElement('permissions-message');
+  if (state.notificationPermissionGranted && state.locationPermissionGranted) {
+    message.textContent = 'Permisos concedidos. Continúa con el aviso de edad y privacidad.';
+    setActiveScreen('consent');
+    return;
+  }
+
+  const missing = [];
+  if (!state.notificationPermissionGranted) missing.push('notificaciones');
+  if (!state.locationPermissionGranted) missing.push('ubicación');
+  message.textContent = `Debes activar ${missing.join(' y ')} para continuar.`;
 };
 
 const generateRandomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -95,8 +118,12 @@ const canAcceptConsent = () => {
   getElement('accept-consent').disabled = !(age && privacy);
 };
 
-document.getElementById('request-notifications').addEventListener('click', requestNotificationPermission);
-document.getElementById('request-location').addEventListener('click', requestLocationPermission);
+document.getElementById('request-notifications').addEventListener('click', async () => {
+  await requestNotificationPermission();
+});
+document.getElementById('request-location').addEventListener('click', async () => {
+  await requestLocationPermission();
+});
 document.getElementById('consent-age').addEventListener('change', canAcceptConsent);
 document.getElementById('consent-privacy').addEventListener('change', canAcceptConsent);
 document.getElementById('accept-consent').addEventListener('click', () => setActiveScreen('register'));
@@ -526,25 +553,24 @@ const tryAutoLogin = async () => {
   return true;
 };
 
+const initOneSignal = async () => {
+  if (!window.OneSignal) return;
+  try {
+    if (typeof window.OneSignal.getUserId === 'function') {
+      const playerId = await window.OneSignal.getUserId();
+      state.oneSignalPlayerId = playerId;
+      console.log('OneSignal player ID:', playerId);
+    }
+  } catch (error) {
+    console.warn('OneSignal init error', error);
+  }
+};
+
 const initApp = async () => {
+  await initOneSignal();
   const autoLogged = await tryAutoLogin();
   if (autoLogged) return;
   setActiveScreen('permissions');
 };
 
 window.addEventListener('load', initApp);
-
-// OneSignal initialization placeholder
-window.OneSignal = window.OneSignal || [];
-window.OneSignal.push(() => {
-  window.OneSignal.init({
-    appId: "YOUR_ONESIGNAL_APP_ID",
-    notifyButton: {
-      enable: false
-    }
-  });
-});
-
-export function initOneSignal() {
-  // Este módulo sirve como punto de inicio para usar OneSignal.
-}

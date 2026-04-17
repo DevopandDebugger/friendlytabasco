@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Friendly Zapata</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
+        allowLocalhostAsSecureOrigin: true,
+        notifyButton: {
+          enable: false
+        }
+      });
+    });
+  </script>
 </head>
 <body>
   <div id="app">
@@ -18,6 +31,7 @@
       <p>Activa las notificaciones push y la ubicación para que la app funcione correctamente.</p>
       <button id="request-notifications">Permitir notificaciones</button>
       <button id="request-location">Permitir ubicación</button>
+      <p id="permissions-message" class="message"></p>
     </section>
 
     <section id="consent-screen" class="screen">
