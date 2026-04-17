@@ -197,8 +197,12 @@
           appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
           allowLocalhostAsSecureOrigin: false,
           notifyButton: { enable: false },
-          serviceWorkerUpdaterParam: { enabled: false },
-          serviceWorkerParam: { enabled: false },
+          serviceWorkerUpdaterParam: { enabled: true },
+          serviceWorkerParam: {
+            enabled: true,
+            path: '/OneSignalSDKWorker.js'
+          },
+          serviceWorkerUpdaterPath: '/OneSignalSDKUpdaterWorker.js',
           autoResubscribe: true,
           autoRegister: true,
           promptOptions: {

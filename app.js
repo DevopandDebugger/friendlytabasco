@@ -631,8 +631,12 @@ const initOneSignal = async () => {
       appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
       allowLocalhostAsSecureOrigin: false,
       notifyButton: { enable: false },
-      serviceWorkerUpdaterParam: { enabled: false },
-      serviceWorkerParam: { enabled: false },
+      serviceWorkerUpdaterParam: { enabled: true },
+      serviceWorkerParam: {
+        enabled: true,
+        path: '/OneSignalSDKWorker.js'
+      },
+      serviceWorkerUpdaterPath: '/OneSignalSDKUpdaterWorker.js',
       autoResubscribe: true,
       autoRegister: true,
       promptOptions: {
@@ -654,7 +658,11 @@ const initOneSignal = async () => {
     console.log('✓ OneSignal inicializado correctamente');
   } catch (error) {
     console.log('✗ Error en inicialización de OneSignal:', error.message);
-    console.log('OneSignal (modo sin service worker)');
+    if (error.message.includes('ServiceWorker')) {
+      console.log('⚠ Service Worker falló, usando solo notificaciones locales');
+    } else {
+      console.log('OneSignal (modo sin service worker)');
+    }
   }
 };
 
