@@ -164,7 +164,18 @@ const createVerificationCode = async (phone) => {
 const sendPushNotification = (phone, title, message) => {
   console.log('Notificación a:', phone, title, message);
   if (Notification.permission === 'granted') {
-    new Notification(title, { body: message, icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23ff7a59"/><text x="50" y="60" text-anchor="middle" font-size="60" fill="white" font-weight="bold">FZ</text></svg>' });
+    let icon = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23ff7a59"/><text x="50" y="60" text-anchor="middle" font-size="60" fill="white" font-weight="bold">FZ</text></svg>';
+    
+    if (title.includes('mensaje')) {
+      icon = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%233b82f6"/><path d="M50 30 L70 50 L70 70 L30 70 L30 50 Z" fill="white"/></svg>';
+    }
+    
+    new Notification(title, { 
+      body: message, 
+      icon,
+      tag: title.includes('mensaje') ? 'chat' : 'default',
+      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23ff7a59"/></svg>'
+    });
   }
   if (title.includes('código')) {
     alert(`${title}\n${message}`);
@@ -417,7 +428,13 @@ const sendChatMessage = async () => {
   await setDoc(chatRef, chatData);
   getElement('chat-input').value = '';
   await loadChatMessages(state.activeChatUser.phone);
-  sendPushNotification(state.activeChatUser.phone, 'Nuevo mensaje', `${state.currentUser.name} te ha escrito.`);
+  
+  const preview = text.length > 40 ? text.substring(0, 40) + '...' : text;
+  sendPushNotification(
+    state.activeChatUser.phone, 
+    `Nuevo mensaje de ${state.currentUser.name}`, 
+    preview
+  );
 };
 
 document.getElementById('send-chat-message').addEventListener('click', sendChatMessage);
@@ -573,15 +590,14 @@ const checkExistingPermissions = async () => {
 };
 
 const initOneSignal = async () => {
-  if (!window.OneSignal) return;
+  if (!window.OneSignal) {
+    console.log('OneSignal no está cargado');
+    return;
+  }
   try {
-    if (typeof window.OneSignal.getUserId === 'function') {
-      const playerId = await window.OneSignal.getUserId();
-      state.oneSignalPlayerId = playerId;
-      console.log('OneSignal player ID:', playerId);
-    }
+    console.log('✓ OneSignal disponible');
   } catch (error) {
-    console.log('OneSignal (notificaciones sin service worker)');
+    console.log('OneSignal (modo sin service worker)');
   }
 };
 

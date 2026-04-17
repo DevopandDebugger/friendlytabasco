@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test OneSignal - Friendly Zapata</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: linear-gradient(135deg, #1b2241 0%, #090a10 100%);
+      color: #eef2ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      margin: 0 0 30px;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .section h2 {
+      font-size: 1rem;
+      margin: 0 0 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: #eef2ff;
+      font-family: inherit;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #ff7a59;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #ff8f73;
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.1);
+      color: #eef2ff;
+    }
+    button.secondary:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .status {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      margin-top: 15px;
+      line-height: 1.5;
+    }
+    .status.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+    .status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    .status.info {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+    code {
+      background: rgba(0,0,0,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test OneSignal</h1>
+
+    <div class="section">
+      <h2>Información del Dispositivo</h2>
+      <p id="device-info" class="status info">Cargando información...</p>
+    </div>
+
+    <div class="section">
+      <h2>Enviar Notificación Local</h2>
+      <label>Título
+        <input type="text" id="notification-title" placeholder="Tu código de verificación" />
+      </label>
+      <label>Mensaje
+        <input type="text" id="notification-message" placeholder="Código: 123456" />
+      </label>
+      <button onclick="sendLocalNotification()">Enviar Notificación</button>
+      <p id="notification-result" class="status"></p>
+    </div>
+
+    <div class="section">
+      <h2>Simular Notificación de Chat</h2>
+      <label>De (nombre)
+        <input type="text" id="chat-from" placeholder="Juan" />
+      </label>
+      <label>Mensaje (máx 50 caracteres)
+        <textarea id="chat-message" placeholder="Hola, ¿cómo estás?"></textarea>
+      </label>
+      <button onclick="sendChatNotification()">Enviar Notificación de Chat</button>
+      <p id="chat-result" class="status"></p>
+    </div>
+
+    <div class="section">
+      <h2>Estado de OneSignal</h2>
+      <button onclick="checkOneSignalStatus()" class="secondary">Ver Estado Completo</button>
+      <p id="onesignal-status" class="status"></p>
+    </div>
+
+    <div class="section">
+      <h2>Atajos Rápidos</h2>
+      <button onclick="testAll()" class="secondary">Ejecutar Todos los Tests</button>
+      <button onclick="clearLog()" class="secondary">Limpiar Log</button>
+      <p id="log" class="status info" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;"></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    const log = (message, type = 'info') => {
+      const logEl = document.getElementById('log');
+      const timestamp = new Date().toLocaleTimeString();
+      logEl.textContent += `[${timestamp}] ${message}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(`[${type}]`, message);
+    };
+
+    const clearLog = () => {
+      document.getElementById('log').textContent = '';
+    };
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      try {
+        log('Inicializando OneSignal...', 'info');
+        await OneSignal.init({
+          appId: "7119fde0-b643-4a77-8efc-124fd69ea0bd",
+          allowLocalhostAsSecureOrigin: true,
+          notifyButton: { enable: false },
+          serviceWorkerUpdaterParam: { enabled: false },
+          serviceWorkerParam: { enabled: false }
+        });
+        log('✓ OneSignal inicializado correctamente', 'success');
+        
+        try {
+          const userId = await OneSignal.User.PushSubscription.id;
+          log(`✓ Player ID: ${userId}`, 'success');
+          updateDeviceInfo();
+        } catch (e) {
+          log(`⚠ No se pudo obtener Player ID: ${e.message}`, 'info');
+          updateDeviceInfo();
+        }
+      } catch (error) {
+        log(`✗ Error en inicialización: ${error.message || error}`, 'error');
+        updateDeviceInfo();
+      }
+    });
+
+    const updateDeviceInfo = async () => {
+      const info = [];
+      info.push(`Navegador: ${navigator.userAgent.split('Chrome')[0].trim()}Chrome`);
+      info.push(`Plataforma: ${navigator.platform}`);
+      info.push(`Notificaciones permitidas: ${Notification.permission}`);
+      info.push(`Ubicación disponible: ${navigator.geolocation ? 'Sí' : 'No'}`);
+      
+      if (window.OneSignal && typeof window.OneSignal.User !== 'undefined') {
+        try {
+          const subscriptionId = await window.OneSignal.User.PushSubscription.id;
+          info.push(`✓ OneSignal Subscription: ${subscriptionId || 'Conectando...'}`);
+        } catch (e) {
+          info.push(`OneSignal Subscription: No disponible`);
+        }
+      } else {
+        info.push(`OneSignal: Cargando...`);
+      }
+
+      document.getElementById('device-info').textContent = info.join('\n');
+    };
+
+    const sendLocalNotification = async () => {
+      const title = document.getElementById('notification-title').value || 'Notification';
+      const message = document.getElementById('notification-message').value || 'Test message';
+      const resultEl = document.getElementById('notification-result');
+
+      try {
+        if (Notification.permission === 'granted') {
+          new Notification(title, { 
+            body: message,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23ff7a59"/><text x="50" y="60" text-anchor="middle" font-size="60" fill="white" font-weight="bold">FZ</text></svg>'
+          });
+          resultEl.className = 'status success';
+          resultEl.textContent = `✓ Notificación enviada: "${title}"\n${message}`;
+          log(`✓ Notificación local enviada: ${title}`, 'success');
+        } else {
+          resultEl.className = 'status error';
+          resultEl.textContent = `✗ Permisos de notificación no otorgados (estado: ${Notification.permission})`;
+          log(`✗ Notificaciones no permitidas`, 'error');
+        }
+      } catch (error) {
+        resultEl.className = 'status error';
+        resultEl.textContent = `✗ Error: ${error.message}`;
+        log(`✗ Error al enviar notificación: ${error.message}`, 'error');
+      }
+    };
+
+    const sendChatNotification = () => {
+      const from = document.getElementById('chat-from').value || 'Usuario';
+      const message = document.getElementById('chat-message').value || 'Te envió un mensaje';
+      const resultEl = document.getElementById('chat-result');
+
+      try {
+        if (Notification.permission === 'granted') {
+          const title = `Nuevo mensaje de ${from}`;
+          const body = message.substring(0, 50) + (message.length > 50 ? '...' : '');
+          
+          new Notification(title, { 
+            body: body,
+            tag: 'chat',
+            requireInteraction: false,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%233b82f6"/><path d="M50 30 L70 50 L70 70 L30 70 L30 50 Z" fill="white"/><circle cx="40" cy="55" r="4" fill="%233b82f6"/><circle cx="50" cy="55" r="4" fill="%233b82f6"/><circle cx="60" cy="55" r="4" fill="%233b82f6"/></svg>'
+          });
+          
+          resultEl.className = 'status success';
+          resultEl.textContent = `✓ Notificación de chat simulada\nDe: ${from}\nMensaje: ${body}`;
+          log(`✓ Notificación de chat: ${title}`, 'success');
+        } else {
+          resultEl.className = 'status error';
+          resultEl.textContent = '✗ Permisos de notificación no otorgados';
+          log(`✗ Notificaciones de chat no permitidas`, 'error');
+        }
+      } catch (error) {
+        resultEl.className = 'status error';
+        resultEl.textContent = `✗ Error: ${error.message}`;
+        log(`✗ Error: ${error.message}`, 'error');
+      }
+    };
+
+    const checkOneSignalStatus = () => {
+      const statusEl = document.getElementById('onesignal-status');
+      const status = [];
+
+      status.push(`OneSignal cargado: ${typeof window.OneSignal !== 'undefined' ? '✓ Sí' : '✗ No'}`);
+      status.push(`OneSignal.User: ${typeof window.OneSignal?.User !== 'undefined' ? '✓ Disponible' : '✗ No disponible'}`);
+      status.push(`Notificaciones del navegador: ${Notification.permission}`);
+      status.push(`AppId configurado: 7119fde0-b643-4a77-8efc-124fd69ea0bd`);
+
+      statusEl.className = 'status info';
+      statusEl.textContent = status.join('\n');
+      log(`Estado de OneSignal verificado`, 'info');
+    };
+
+    const testAll = async () => {
+      clearLog();
+      log('Iniciando suite de tests...', 'info');
+      
+      setTimeout(() => {
+        checkOneSignalStatus();
+        log('---', 'info');
+        sendLocalNotification();
+      }, 1000);
+    };
+
+    // Initialize on page load
+    window.addEventListener('load', () => {
+      log('Página cargada. Esperando OneSignal...', 'info');
+      setTimeout(updateDeviceInfo, 2000);
+    });
+  </script>
+</body>
+</html>
