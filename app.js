@@ -135,9 +135,15 @@ document.getElementById('forgot-password').addEventListener('click', () => setAc
 
 const uploadPhoto = async (file, phone) => {
   if (!file) return '';
-  const photoRef = storageRef(storage, `profilePhotos/${phone}-${Date.now()}`);
-  await uploadBytes(photoRef, file);
-  return await getDownloadURL(photoRef);
+  try {
+    const photoRef = storageRef(storage, `profilePhotos/${phone}-${Date.now()}`);
+    await uploadBytes(photoRef, file);
+    return await getDownloadURL(photoRef);
+  } catch (error) {
+    console.warn('Photo upload failed:', error);
+    showMessage('register-message', 'No fue posible subir la foto. Se guardará tu cuenta sin imagen.', false);
+    return '';
+  }
 };
 
 const calculateAge = (birthdate) => {
